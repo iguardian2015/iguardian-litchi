@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.litchi.iguardian"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="21" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_iguardian"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden|screenSize"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".LoginActivity"
+            
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name=".SessionManagement"
+            android:label="@string/app_name" >
+        </activity>
+
+        <!--
+        <activity
+            android:name="com.litchi.iguardian.Assignments"
+            android:label="@string/app_name" 
+            android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+        </activity>
+        <activity
+            android:name="com.litchi.iguardian.Attendance"
+            android:label="@string/app_name" 
+        android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+        </activity>
+        <activity
+            android:name="com.litchi.iguardian.Inbox"
+            android:label="@string/app_name" 
+        android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+        </activity>
+        -->
+        <activity
+            android:name=".InboxView"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" >
+            Parent activity meta-data to support 4.0 and lower
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.litchi.iguardian.MainActivity" />
+        </activity>
+        <activity
+            android:name=".OutboxView"
+            android:label="@string/app_name"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="stateHidden" >
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.litchi.iguardian.MainActivity" />
+        </activity>
+        <!--
+        <activity
+            android:name="com.litchi.iguardian.mainStudent"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" 
+        android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+            
+        </activity>
+        
+        <activity
+            android:name="com.litchi.iguardian.ComposeMessage"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" 
+        android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+            
+        </activity>
+        <activity
+            android:name="com.litchi.iguardian.TimeTable"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" 
+        android:parentActivityName="com.litchi.iguardian.MainActivity" >
+        Parent activity meta-data to support 4.0 and lower
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.litchi.iguardian.MainActivity" />
+            
+            
+        </activity>
+        -->
+        <activity
+            android:name=".Test_database"
+            android:label="@string/title_activity_test_database" >
+        </activity>
+        <activity
+            android:name=".Test"
+            android:label="@string/title_activity_test" >
+        </activity>
+        <activity
+            android:name=".AssignmentView"
+            android:label="@string/title_activity_assignment_view" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.litchi.iguardian.MainActivity" />
+        </activity>
+        <activity
+            android:name=".CircularView"
+            android:label="@string/title_activity_circular_view" >
+        </activity>
+        
+    </application>
+
+</manifest>

@@ -1,0 +1,284 @@
+package com.litchi.iguardian;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+public class Outbox extends Fragment {
+
+	int result_check = 0;
+	TextView tvItemName;
+	ListView assignments;
+	// TextView assignments;
+	HttpPost httppost;
+	StringBuffer buffer;
+	HttpResponse response;
+	HttpClient httpclient;
+	List<NameValuePair> nameValuePairs;
+	private ProgressDialog dialog = null;
+	String[] assign;
+	// Spinner spinner1;
+	// public String schoolSelected;
+	SessionManagement session;
+	String username, school_db;
+
+	ArrayList<HashMap<String, String>> list2 =
+
+	new ArrayList<HashMap<String, String>>();
+
+	// public static final String IMAGE_RESOURCE_ID = "iconResourceID";
+	// public static final String ITEM_NAME = "itemName";
+
+	public Outbox() {
+
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		View view = inflater.inflate(R.layout.assignment, container, false);
+
+		session = new SessionManagement(getActivity());
+		HashMap<String, String> user = session.getUserDetails();
+		username = user.get(SessionManagement.KEY_NAME);
+		school_db = user.get(SessionManagement.KEY_DB);
+
+		getActivity().setTitle("Outbox");
+
+		tvItemName = (TextView) view.findViewById(R.id.frag1_text);
+
+		//
+		assignments = (ListView) view.findViewById(R.id.listView1);
+
+		// StrictMode.enableDefaults();
+
+		// getData(username , school);
+		new Outboxget().execute();
+
+		assignments
+				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+					public void onItemClick(AdapterView<?> arg0, View arg1,
+							int position, long arg3) {
+						Intent intent = new Intent(getActivity(),
+								OutboxView.class);
+
+						HashMap<String, String> item = list2.get(position);
+						intent.putExtra("message", item.get("message")
+								.toString());
+						intent.putExtra("name", item.get("name").toString());
+						intent.putExtra("message_subject",
+								item.get("message_subject").toString());
+						intent.putExtra("date", item.get("date").toString());
+						intent.putExtra("message_id", item.get("message_id")
+								.toString());
+						// parentActivity = (WorldTaxiActivityGroup)
+						// getParent();
+						// parentActivity.startChildActivity("BroadcastData",
+						// intent);
+						getActivity().startActivity(intent);
+					}
+				});
+
+		return view;
+	}
+
+	private class Outboxget extends AsyncTask<Void, Void, String> {
+
+		@Override
+		protected String doInBackground(Void... params) {
+			getData(username, school_db);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+
+			if (result_check == 1) {
+				SimpleAdapter adapter = new SimpleAdapter(getActivity(), list2,
+						R.layout.custom_outbox, new String[] { "name",
+								"message_subject", "date" }, new int[] {
+								R.id.message_for_text, R.id.message_date_text2,
+								R.id.message_subject_text2 });
+
+				assignments.setAdapter(adapter);
+			}
+			dialog.dismiss();
+		}
+
+		@Override
+		protected void onPreExecute() {
+			dialog = ProgressDialog.show(getActivity(), "", "Please Wait..",
+					true);
+
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+
+		void getData(String username, String school) {
+			InputStream isr = null;
+			String result = "";
+
+			try {
+
+				httpclient = new DefaultHttpClient();
+				httppost = new HttpPost(
+						"http://npaneer.iguardianerp.co.in/outbox.php");
+
+				nameValuePairs = new ArrayList<NameValuePair>(2);
+				// tv.setText("vhpppi");
+
+				nameValuePairs
+						.add(new BasicNameValuePair("username", username)); // $Edittext_value
+																			// =
+																			// $_POST['Edittext_value'];
+				// nameValuePairs.add(new
+				// BasicNameValuePair("schoolName",schoolName));
+				// tv.setText("vhiccc");
+				nameValuePairs.add(new BasicNameValuePair("dbSelected",
+						school_db));
+				// tv.setText("vhisjdskdj");
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				// Execute HTTP Post Request
+				// response=httpclient.execute(httppost);
+
+				HttpResponse response = httpclient.execute(httppost);
+				HttpEntity entity = response.getEntity();
+				isr = entity.getContent();
+
+			} // try terminated
+
+			catch (Exception e) {
+				// dialog.dismiss();
+				System.out.println("Exception : " + e.getMessage());
+				InternetAlert();
+			}
+
+			try {
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(isr, "iso-8859-1"), 8);
+				StringBuilder sb = new StringBuilder();
+				String line = null;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line + "\n");
+
+				}
+				isr.close();
+
+				result = sb.toString();
+
+			} catch (Exception e) {
+				Log.e("log_tag", "Error coverting result " + e.toString());
+
+			}
+			try {
+				if (!result.trim().toString().equals("0")) {
+
+					result_check = 1;
+					JSONArray jArray = new JSONArray(result);
+
+					for (int i = 0; i < jArray.length(); i++) {
+						JSONObject json = jArray.getJSONObject(i);
+						// assign[i]=json.getString("ASSIGNMENT_TEXT");
+						HashMap<String, String> temp2 = new HashMap<String, String>();
+
+						temp2.put("name", "" + json.getString("FIRST_NAME")
+								+ " " + json.getString("MIDDLE_NAME") + " "
+								+ json.getString("LAST_NAME") + "");
+
+						temp2.put("message_subject",
+								"" + json.getString("MESSAGE_SUBJECT") + "");
+						temp2.put("date", "" + json.getString("Date") + "");
+						temp2.put("message", "" + json.getString("MESSAGE")
+								+ "");
+						temp2.put("message_id",
+								"" + json.getString("MESSAGE_ID") + "");
+						list2.add(temp2);
+
+						// listItems.add(""+json.getString("ASSIGNMENT_TEXT")+"");
+					}
+				}
+
+			} catch (Exception e) {
+				Log.e("log_tag", "Error Parsing data " + e.toString());
+				DataAlert();
+
+			}
+
+		} // void
+
+	}
+
+	public void InternetAlert() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Connection Error");
+				builder.setMessage("Check Internet Connection")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+	public void DataAlert() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Error");
+				builder.setMessage("No Data Found")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+}

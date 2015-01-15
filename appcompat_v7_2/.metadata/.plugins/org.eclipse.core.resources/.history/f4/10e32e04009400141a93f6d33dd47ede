@@ -1,0 +1,70 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".ComposeMessage" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="false"
+        android:orientation="vertical"
+        android:padding="10dp" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:src="@drawable/iguardian" />
+
+        <Spinner
+            android:id="@+id/teacher_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:text="Subject :"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/message_subject"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/edittext_default_bg"
+            android:hint="Message Subject"
+            android:padding="10dp"
+            android:singleLine="true"
+            android:textColorHint="#bbbbbb" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:text="Message :"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/new_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/edittext_default_bg"
+            android:hint="Write Message"
+            android:inputType="textMultiLine"
+            android:padding="10dp"
+            android:textColorHint="#bbbbbb" />
+
+        <Button
+            android:id="@+id/Button_send"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="4dp"
+            android:background="@drawable/button_default_bg"
+            android:padding="10dp"
+            android:text="Send" />
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,744 @@
+package com.litchi.iguardian;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import com.google.android.gcm.GCMRegistrar;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.app.ActionBarActivity;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends ActionBarActivity implements
+		OnItemClickListener {
+	private DrawerLayout drawerLayout;
+	private LinearLayout DrawerLinear;
+	private ListView listView;
+	 ProgressDialog dialog;
+	Fragment fragment = null;
+	private ActionBarDrawerToggle drawerListener;
+	private MyAdapter myAdapter;
+	Spinner spinner_user;
+	int check_password = 0 ;
+	HttpPost httppost;
+	StringBuffer buffer;
+	HttpResponse response;
+	HttpClient httpclient;
+	List<NameValuePair> nameValuePairs;
+	// /String[] schoolName={"one","two"};
+	SessionManagement session;
+	private UserDataSource datasource;
+	public String user_selected;
+	public String dbSelected;
+	public String passSelected;
+	int check = 0;
+	String school_db;
+	String username, password;
+	String number ;
+
+	private String TAG = "** pushAndroidActivity **";
+
+	// private TextView mDisplay;
+
+	TextView RuA, paC, DEF;
+	TextView Defense_Tackles[];
+
+	AsyncTask<Void, Void, Void> mRegisterTask;
+
+	// UserTable username1 ;
+
+	protected void onCreate(Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+
+		setContentView(R.layout.activity_main);
+
+		session = new SessionManagement(getApplicationContext());
+
+		/*registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));*/
+		
+		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE); 
+		number = tm.getLine1Number();
+		Log.i("No.", number);
+
+		int login = session.checkLogin();
+		if (login == 1) {
+			/*
+			 * Intent i = new Intent(this, LoginActivity.class);
+			 * startActivity(i); finish();
+			 */
+			Intent intent = new Intent(this, LoginActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			finish();
+		}
+
+		/*
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 */
+
+		/*
+		 * checkNotNull(CommonUtilities.SENDER_ID, "SENDER_ID"); // Make sure
+		 * the device has the proper dependencies.
+		 * GCMRegistrar.checkDevice(this); // Make sure the manifest was
+		 * properly set - comment out this line // while developing the app,
+		 * then uncomment it when it's ready. GCMRegistrar.checkManifest(this);
+		 * //setContentView(R.layout.activity_demo); //mDisplay = (TextView)
+		 * findViewById(R.id.display); registerReceiver(mHandleMessageReceiver,
+		 * new IntentFilter( CommonUtilities.DISPLAY_MESSAGE_ACTION)); final
+		 * String regId = GCMRegistrar.getRegistrationId(this); if
+		 * (regId.equals("")) { // Automatically registers application on
+		 * startup. GCMRegistrar.register(this, CommonUtilities.SENDER_ID);
+		 * 
+		 * } else { Log.i("Already Registered :", regId);
+		 * 
+		 * }
+		 */
+
+		/*
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 */
+
+		Log.i("Value of sk", "SSF");
+		HashMap<String, String> user = session.getUserDetails();
+
+		username = user.get(SessionManagement.KEY_NAME);
+
+		school_db = user.get(SessionManagement.KEY_DB);
+		
+		//HashMap<String, String> pass = session.get_password();
+		
+		password = user.get(SessionManagement.KEY_PASS);
+
+		listView = (ListView) findViewById(R.id.drawerList);
+		// listView.setAdapter(new
+		// ArrayAdapter<>(this,android.R.layout.simple_list_item_1, Planets));
+		myAdapter = new MyAdapter(this);
+		// int k = 0;
+		/*
+		 * for(k=0 ; k< session.count ; i++) { schoolName[k] = }
+		 */
+		// schoolName = session.user_account();
+		spinner_user = (Spinner) findViewById(R.id.spinner_user);
+		listView.setAdapter(myAdapter);
+		listView.setOnItemClickListener(this);
+		drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+		DrawerLinear = (LinearLayout) findViewById(R.id.DrawerLinear);
+
+		Field mDragger;
+		try {
+			mDragger = drawerLayout.getClass().getDeclaredField("mLeftDragger");
+			mDragger.setAccessible(true);
+			ViewDragHelper draggerObj;
+			draggerObj = (ViewDragHelper) mDragger.get(drawerLayout);
+			Field mEdgeSize = draggerObj.getClass().getDeclaredField(
+					"mEdgeSize");
+			mEdgeSize.setAccessible(true);
+			int edge = mEdgeSize.getInt(draggerObj);
+
+			mEdgeSize.setInt(draggerObj, edge * 15);
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}// mRightDragger for right obviously
+
+		catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		drawerListener = new ActionBarDrawerToggle(this, drawerLayout,
+				R.drawable.ic_drawer, R.string.drawer_open,
+				R.string.drawer_close);
+
+		drawerLayout.setDrawerListener(drawerListener);
+		android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
+
+		if (login != 1) {
+			
+			dialog = ProgressDialog.show(MainActivity.this, "",
+					"Please Wait..", true);
+			new Thread(new Runnable() {
+				public void run() {
+					// getSchoolDb();
+					login();
+
+				}
+			}).start();
+			
+			
+			/*
+			 * registerReceiver(mHandleMessageReceiver, new IntentFilter(
+			 * CommonUtilities.DISPLAY_MESSAGE_ACTION));
+			 */
+			datasource = new UserDataSource(this);
+			datasource.open();
+
+			// List<UserTable> values = datasource.getAllComments();
+			//List<String> school = datasource.get_school_db();
+			List<String> user_name = datasource.get_user_name();
+			//List<String> user_password = datasource.get_user_password();
+			datasource.close();
+			/*
+			 * ArrayAdapter<UserTable> dataAdapter1 = new
+			 * ArrayAdapter<UserTable>( getApplicationContext(),
+			 * R.layout.spinner_item, values);
+			 */
+
+			ArrayAdapter<String> dataAdapter2 = new ArrayAdapter<String>(
+					getApplicationContext(), R.layout.spinner_item, user_name);
+
+			dataAdapter2.setDropDownViewResource(R.layout.spinner_item);
+			// spinner_user.setAdapter(dataAdapter1);
+			// spinner1.setPrompt("Select School");
+			spinner_user.setAdapter(dataAdapter2);
+			String spinnerItem;
+			int i;
+			if (!username.equals(null)) {
+				for (i = 0;; i++) {
+					spinnerItem = dataAdapter2.getItem(i);
+					Log.i("Value of spin=", spinnerItem);
+					Log.i("Value of username=", username);
+					if (username.equals(spinnerItem)) {
+						Log.i("Value of spin2=", spinnerItem);
+						spinner_user.setSelection(i);
+						i = 0;
+						break;
+					}
+				}
+
+			}
+
+			// int check =0;
+			spinner_user
+					.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+						@Override
+						public void onItemSelected(AdapterView<?> parent,
+								View arg1, int arg2, long arg3) {
+							Log.i("Value of ", "enetred");
+							check = check + 1;
+							// TODO Auto-generated method stub
+							if (check > 1) {
+								int index = parent.getSelectedItemPosition();
+								// user_selected = values.get(index);
+								// tv.setText(schoolSelected);
+								user_selected = (String) parent
+										.getSelectedItem();
+
+								datasource.open();
+								List<String> school = datasource
+										.get_school_db();
+								List<String> user_password = datasource
+										.get_user_password();
+								datasource.close();
+								// Log.i("Value of ", "good2");
+								dbSelected = school.get(index);
+								passSelected = user_password.get(index)
+								// Log.i("Value of user = ",
+								// user_selected.toString());
+								// Log.i("Value of school = ", school_selected);
+								// Log.i("Value of ", "index=" + index);
+								// Log.i("Value of element = ",user_selected.toString());
+								session.createLoginSession(
+										user_selected.toString(), passSelected, dbSelected);
+
+								drawerLayout.closeDrawer(DrawerLinear);
+								spinner_user.setSelection(index);
+								
+
+								/*
+								 * Intent intent = getIntent(); finish();
+								 * intent.setFlags(intent.getFlags() |
+								 * Intent.FLAG_ACTIVITY_NO_HISTORY);
+								 * startActivity(intent);
+								 */
+
+								fragment = new MainStudent();
+								FragmentManager frgManager = getSupportFragmentManager();
+								frgManager.beginTransaction()
+										.replace(R.id.mainContent, fragment)
+										.commit();
+
+							}
+						}
+
+						@Override
+						public void onNothingSelected(AdapterView<?> arg0) {
+							// TODO Auto-generated method stub
+
+						}
+
+					});
+
+			getOverflowMenu();
+
+			
+			
+			
+		}
+
+	}
+
+	void login() {         // Re-authenticating every time on start of the application.
+						   // Otherwise log out. 
+
+		
+		try { 
+
+			httpclient = new DefaultHttpClient();
+			httppost = new HttpPost(
+					"http://npaneer.iguardianerp.co.in/login.php");
+
+			nameValuePairs = new ArrayList<NameValuePair>(3);
+			// tv.setText("vhpppi");
+
+			nameValuePairs.add(new BasicNameValuePair("username", username)); // $Edittext_value =
+											// $_POST['Edittext_value'];
+			nameValuePairs.add(new BasicNameValuePair("password",password));
+			// tv.setText("vhiccc");
+			// nameValuePairs.add(new BasicNameValuePair("schoolSelected",
+			// schoolSelected.trim()));
+			nameValuePairs.add(new BasicNameValuePair("dbSelected", school_db));
+			// tv.setText("vhisjdskdj");
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			// Execute HTTP Post Request
+			//response = httpclient.execute(httppost);
+
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			final String response3 = httpclient.execute(httppost,
+					responseHandler);
+			System.out.println("Response : " + response3);
+			
+			if (response3.equalsIgnoreCase("User Found")) {
+				
+				
+				//  check_password = 1 ;
+				runOnUiThread(new Runnable() {
+					public void run() {
+						// tv.setText("Response from PHP : " + response);
+						dialog.dismiss();
+					}
+				});
+				fragment = new MainStudent();
+				FragmentManager frgManager = getSupportFragmentManager();
+				frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+						.commit();
+
+							
+
+			} else {
+				
+				runOnUiThread(new Runnable() {
+					public void run() {
+						// tv.setText("Response from PHP : " + response);
+						dialog.dismiss();
+					}
+				});
+				password_changed_alert();
+				
+
+			}
+
+		} // try terminated
+
+		catch (Exception e) {
+			dialog.dismiss();
+			System.out.println("Exception : " + e.getMessage());
+		}
+
+	} // void login terminated
+
+	
+	
+	private void getOverflowMenu() {
+
+		try {
+			ViewConfiguration config = ViewConfiguration.get(this);
+			Field menuKeyField = ViewConfiguration.class
+					.getDeclaredField("sHasPermanentMenuKey");
+			if (menuKeyField != null) {
+				menuKeyField.setAccessible(true);
+				menuKeyField.setBoolean(config, false);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu items for use in the action bar
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_activity_actions, menu);
+		// boolean drawerOpen = drawerLayout.isDrawerOpen(DrawerLinear);
+		// menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		if (drawerListener.onOptionsItemSelected(item)) {
+			return true;
+		}
+
+		int itemId = item.getItemId();
+		if (itemId == R.id.action_logout) {
+			session.logoutUser();
+			MainActivity.this.finish();
+			return true;
+		}
+		if (itemId == R.id.action_add_account) {
+			Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+			MainActivity.this.startActivity(intent);
+
+		}
+
+		return super.onOptionsItemSelected(item);
+
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+		drawerListener.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onPostCreate(savedInstanceState);
+		drawerListener.syncState();
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+			long arg3) {
+		selectItem(position);
+		listView.setItemChecked(position, true);
+		listView.setSelection(position);
+
+		drawerLayout.closeDrawer(DrawerLinear);
+		// DrawerLinear.closeDrawer(listView);
+		if (position == 0) {
+
+			fragment = new MainStudent();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+
+		}
+		if (position == 1) {
+			fragment = new Assignments();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 2) {
+			fragment = new Attendance();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+
+		}
+		if (position == 3) {
+			fragment = new Inbox();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+
+		}
+		if (position == 4) {
+			fragment = new Outbox();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 5) {
+			fragment = new ComposeMessage();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 6) {
+			fragment = new Marks();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 7) {
+			fragment = new TimeTable();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 8) {
+			fragment = new ExamSchedule();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 9) {
+			fragment = new Circulars();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 10) {
+			
+			fragment = new BusRoute();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			/*
+			 * Intent intent = new Intent(this, ReportProblem.class);
+			 * 
+			 * startActivity(intent);
+			 */
+			drawerLayout.closeDrawers();
+		}
+		if (position == 11) {
+			fragment = new ReportProblem();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			
+			
+			/*
+			 * Intent intent = new Intent(this, ReportProblem.class);
+			 * 
+			 * startActivity(intent);
+			 */
+			drawerLayout.closeDrawers();
+		}
+
+	}
+
+	public void selectItem(int position) {
+
+		listView.setItemChecked(position, true);
+
+	}
+
+	/*
+	 * @Override protected void onDestroy() { if (mRegisterTask != null) {
+	 * mRegisterTask.cancel(true); } unregisterReceiver(mHandleMessageReceiver);
+	 * GCMRegistrar.onDestroy(getApplicationContext()); super.onDestroy(); }
+	 */
+	@Override
+	public void onStop() {
+		super.onStop();
+		unregisterReceiver(mHandleMessageReceiver);
+	}
+	@Override
+	public void onStart() {
+		super.onStart();
+		registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));
+	}
+	
+
+	/*@Override
+	protected void onPause() {
+		super.onPause();
+
+		unregisterReceiver(mHandleMessageReceiver);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		// put your code here...
+		registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));
+
+	}
+*/
+	private final BroadcastReceiver mHandleMessageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String newMessage = intent.getExtras().getString(
+					CommonUtilities.EXTRA_MESSAGE);
+			// mDisplay.append(newMessage + "\n");
+		}
+	};
+	
+	public void DataAlert() {
+		MainActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
+				builder.setTitle("Error");
+				builder.setMessage("No Data Found")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+	
+	public void password_changed_alert() {
+		MainActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
+				builder.setTitle("Please Login Again..");
+				builder.setMessage("It seems that password has been changed.")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+										session.logoutUser();
+										MainActivity.this.finish();
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+}
+
+class MyAdapter extends BaseAdapter {
+	private Context context;
+	String[] iguardianmenu;
+	int[] images = { R.drawable.student, R.drawable.assignment_icon,
+			R.drawable.attendance_icon, R.drawable.inbox, R.drawable.outbox,
+			R.drawable.compose_message, R.drawable.marks_icon,
+			R.drawable.time_table, R.drawable.exam_schedule,
+			R.drawable.circular_icon, R.drawable.bus_route , R.drawable.report
+
+	};
+
+	public MyAdapter(Context context) {
+		// TODO Auto-generated constructor stub
+		this.context = context;
+		iguardianmenu = context.getResources().getStringArray(R.array.imenu);
+
+	}
+
+	@Override
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return iguardianmenu.length;
+	}
+
+	@Override
+	public Object getItem(int position) {
+		// TODO Auto-generated method stub
+		return iguardianmenu[position];
+	}
+
+	@Override
+	public long getItemId(int position) {
+		// TODO Auto-generated method stub
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		// TODO Auto-generated method stub
+		View row = null;
+		if (convertView == null) {
+			LayoutInflater inflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			row = inflater.inflate(R.layout.findrow, parent, false);
+		} else {
+			row = convertView;
+
+		}
+		TextView titleTextView = (TextView) row.findViewById(R.id.textView1);
+		ImageView titleImageView = (ImageView) row
+				.findViewById(R.id.imageView1);
+		titleTextView.setText(iguardianmenu[position]);
+		titleImageView.setImageResource(images[position]);
+		return row;
+	}
+
+}

@@ -1,0 +1,357 @@
+package com.litchi.iguardian;
+
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import android.app.ProgressDialog;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+ 
+public class mainStudent extends Fragment {
+ 
+      ImageView student_image;
+      TextView student_name, class_name, student_birth_date, student_gender, student_address, student_father_name,
+                student_mother_name , no_of_communication;
+      ListView assignments;
+		//TextView assignments;
+	    HttpPost httppost;
+	    StringBuffer buffer;
+	    HttpResponse response;
+	    HttpClient httpclient;
+	    List<NameValuePair> nameValuePairs;
+	   // ProgressDialog dialog = null;
+	    String[] assign;
+	    //Spinner spinner1;
+	   // public String schoolSelected;
+	    SessionManagement session ;
+	    String school, username, image_id ;
+	    
+	   // private ImageView downloadedImg;
+		private ProgressDialog simpleWaitDialog, simpleWaitDialog2;
+		 String downloadUrl ; 
+ 
+       
+      public mainStudent() {
+ 
+      }
+ 
+      @Override
+      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                  Bundle savedInstanceState) {
+ 
+            View view = inflater.inflate(R.layout.costum_main_student, container,
+                        false);
+            
+            
+            getActivity().setTitle("Student Profile");
+            student_image = (ImageView) view.findViewById(R.id.student_image);
+            student_name = (TextView) view.findViewById(R.id.student_name);
+            class_name = (TextView) view.findViewById(R.id.student_class);
+            student_birth_date = (TextView) view.findViewById(R.id.student_birth_date);
+            student_gender = (TextView) view.findViewById(R.id.student_gender);
+            student_address = (TextView) view.findViewById(R.id.student_address);
+            student_father_name = (TextView) view.findViewById(R.id.student_father_name);
+            student_mother_name = (TextView) view.findViewById(R.id.student_mother_name);
+            no_of_communication = (TextView) view.findViewById(R.id.no_of_communication);
+           // student_name = (TextView) view.findViewById(R.id.student_name);
+			
+			
+			session = new SessionManagement( getActivity());
+			StrictMode.enableDefaults();
+			
+			HashMap<String, String> user = session.getUserDetails();
+			  username = user.get(SessionManagement.KEY_NAME);
+		      school = user.get(SessionManagement.KEY_SCHOOL);
+	        	        
+	        //getData(school,username);
+	        
+	        downloadUrl = "http://npaneer.iguardianerp.co.in/student_images/"+image_id+".jpg";
+	        
+	        new ImageDownloader().execute(downloadUrl);
+            new dataget().execute("");
+            return view;
+      }
+      
+      
+      /*private class getData extends AsyncTask
+      {
+
+		@Override
+		protected Object doInBackground(Object... arg0) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+    	  
+      }*/
+      
+      
+      private class dataget extends AsyncTask<String, Void, String> {
+
+          @Override
+          protected String doInBackground(String... params) {
+        	  getData(school,username);
+        	  return "Executed";
+          }
+
+          @Override
+          protected void onPostExecute(String result) {
+             // TextView txt = (TextView) findViewById(R.id.output);
+             // txt.setText("Executed"); // txt.setText(result);
+              // might want to change "executed" for the returned string passed
+              // into onPostExecute() but that is upto you
+        	  simpleWaitDialog2.dismiss();
+          }
+
+          @Override
+          protected void onPreExecute() {
+        	  simpleWaitDialog2 = ProgressDialog.show(getActivity(),
+  					"Wait", "Connecting..");
+
+          }
+
+          @Override
+          protected void onProgressUpdate(Void... values) {}
+      }
+      
+      
+      
+      private class ImageDownloader extends AsyncTask<String, Void , Bitmap>
+      {
+
+		@Override
+		protected Bitmap doInBackground(String... param) {
+			// TODO Auto-generated method stub
+			//getData(school,username);
+			return downloadBitmap(param[0]);
+			
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			Log.i("Async-Example", "onPreExecute Called");
+			simpleWaitDialog = ProgressDialog.show(getActivity(),
+					"Wait", "Connecting..");
+
+		}
+
+		@Override
+		protected void onPostExecute(Bitmap result) {
+			Log.i("Async-Example", "onPostExecute Called");
+			student_image.setImageBitmap(result);
+			simpleWaitDialog.dismiss();
+
+		}
+
+		private Bitmap downloadBitmap(String url) {
+			// initilize the default HTTP client object
+			final DefaultHttpClient client = new DefaultHttpClient();
+
+			//forming a HttoGet request 
+			final HttpGet getRequest = new HttpGet(url);
+			try {
+
+				HttpResponse response = client.execute(getRequest);
+
+				//check 200 OK for success
+				final int statusCode = response.getStatusLine().getStatusCode();
+
+				if (statusCode != HttpStatus.SC_OK) {
+					Log.w("ImageDownloader", "Error " + statusCode + 
+							" while retrieving bitmap from " + url);
+					return null;
+
+				}
+
+				final HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					InputStream inputStream = null;
+					try {
+						// getting contents from the stream 
+						inputStream = entity.getContent();
+
+						// decoding stream data back into image Bitmap that android understands
+						final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+						return bitmap;
+					} finally {
+						if (inputStream != null) {
+							inputStream.close();
+						}
+						entity.consumeContent();
+					}
+				}
+			} catch (Exception e) {
+				// You Could provide a more explicit error message for IOException
+				getRequest.abort();
+				Log.e("ImageDownloader", "Something went wrong while" +
+						" retrieving bitmap from " + url + e.toString());
+			} 
+
+			return null;
+		}
+    	  
+      }
+      
+      
+      
+      
+      
+      void getData(String school, String username)
+	    {
+			InputStream	isr = null ;
+			String result = "";
+			
+	        try
+	        {         	              
+	            httpclient  =new DefaultHttpClient();
+	            httppost= new HttpPost("http://npaneer.iguardianerp.co.in/student_main.php"); 
+	            
+	            nameValuePairs = new ArrayList<NameValuePair>(2);
+	            //tv.setText("vhpppi");
+	            
+	            
+	             
+	            nameValuePairs.add(new BasicNameValuePair("username",username));  // $Edittext_value = $_POST['Edittext_value'];
+	           
+	            nameValuePairs.add(new BasicNameValuePair("schoolSelected",school));
+	            //tv.setText("vhisjdskdj");
+	            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+	            	            
+	            HttpResponse response = httpclient.execute(httppost);
+	    		HttpEntity entity = response.getEntity();
+	    		isr = entity.getContent();
+
+	            
+	                      
+	        }   // try terminated
+	        
+	        catch(Exception e)
+	        {
+	            //dialog.dismiss();
+	            System.out.println("Exception : " + e.getMessage());
+	        }
+	        
+	        try
+	    	{
+	    		BufferedReader reader = new BufferedReader(new InputStreamReader(isr,"iso-8859-1"),8);
+	    		StringBuilder sb = new StringBuilder();
+	    		String line = null ;
+	    		while((line = reader.readLine())!=null)
+	    		{
+	    			sb.append(line + "\n");
+	    			
+	    		}
+	    		isr.close();
+	    		
+	    		result = sb.toString();
+	    		
+	    	}
+	    	catch(Exception e)
+	    	{
+	    		Log.e("log_tag","Error coverting result "+e.toString());
+	    		
+	    	}
+	    	try
+	    	{
+	    		//String s = "";
+	    		//ArrayList<String> listItems=new ArrayList<String>();
+	    		 ArrayList<HashMap<String,String>> list = 
+
+	    				new ArrayList<HashMap<String,String>>();
+	    			
+	    		
+	    		JSONArray jArray =  new JSONArray(result);
+	    			  	    	   
+	    		for( int i =0 ; i < jArray.length(); i++)
+	    		{
+	    			JSONObject json = jArray.getJSONObject(i);
+	    			//assign[i]=json.getString("ASSIGNMENT_TEXT");
+	    			
+	    			student_name.setText(""+json.getString("First_name")+" "+json.getString("middle_name")+" "+json.getString("last_name")+"");
+	    			class_name.setText("Class : "+json.getString("class_name")+"");
+	    			student_birth_date.setText("Date of Birth : "+json.getString("birth_date")+"");
+	    			student_gender.setText("Gender : "+json.getString("gender")+"");
+	    			student_address.setText("Address : "+json.getString("address_line1")+" "+json.getString("city")+" "+json.getString("state")+"");
+	    			student_father_name.setText("Father's Name : "+json.getString("father_name")+"");
+	    			student_mother_name.setText("Mother's Name : "+json.getString("mother_name")+"");
+	    			no_of_communication.setText("Mobile : "+json.getString("no_of_communication")+"");
+	    			image_id = ""+json.getString("student_id")+"";
+	    			/*HashMap<String,String> temp = new HashMap<String,String>();
+	    			
+	    			temp.put("name", ""+json.getString("First_name")+" "+json.getString("middle_name")+" "+json.getString("last_name")+"");
+	    			temp.put("class",""+json.getString("class_name")+"");
+	    			temp.put("birth_date", ""+json.getString("birth_date")+"");
+	    			temp.put("gender", ""+json.getString("gender")+"");
+	    			temp.put("address", ""+json.getString("address_line1")+" "+json.getString("city")+" "+json.getString("state")+"");
+	    			temp.put("father_name", ""+json.getString("father_name")+"");
+	    			temp.put("mother_name", ""+json.getString("mother_name")+"");
+	    			temp.put("father_mobile_no", ""+json.getString("father_mobile_no")+"");
+	    			temp.put("mother_mobile_no", ""+json.getString("mother_mobile_no")+"");
+	    			temp.put("no_of_communication", ""+json.getString("no_of_communication")+"");
+	    			temp.put("emer_contact_phone", ""+json.getString("emer_contact_phone")+"");
+	    			list.add(temp);
+*/	    			
+	    					
+	    			 //listItems.add(""+json.getString("ASSIGNMENT_TEXT")+"");
+	    		}
+	    			    		/*SimpleAdapter adapter = new SimpleAdapter(
+						getActivity(),
+						list,
+						R.layout.custom_row_view,
+						new String[] {"subject","assign","date"},
+						new int[] {R.id.text2,R.id.text1, R.id.text3}
+
+						);
+
+	    		assignments.setAdapter(adapter);*/
+	    	    	    	   
+	    		
+	    	}
+	    	catch(Exception e)
+	    	{
+	    		Log.e("log_tag", "Error Parsing data "+e.toString());
+	    		
+	    		
+	    	}
+
+	        
+	    }                 // void 
+
+				
+      	
+      
+      
+		
+		
+      
+ 
+}

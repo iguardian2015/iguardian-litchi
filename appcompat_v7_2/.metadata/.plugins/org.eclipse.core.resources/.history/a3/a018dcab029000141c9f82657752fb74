@@ -1,0 +1,124 @@
+package com.litchi.iguardian;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+
+public class UserDataSource {
+
+  // Database fields
+  private SQLiteDatabase database;
+  private MySQLiteHelper dbHelper;
+ // private String[] allColumns = { MySQLiteHelper.COLUMN_ID,
+   //   MySQLiteHelper.COLUMN_COMMENT };
+  
+  private String[] user_columns = { MySQLiteHelper.user_id,
+	      MySQLiteHelper.user_name, MySQLiteHelper.user_school };
+
+  public UserDataSource(Context context) {
+    dbHelper = new MySQLiteHelper(context);
+  }
+
+  public void open() throws SQLException {
+    database = dbHelper.getWritableDatabase();
+  }
+
+  public void close() {
+    dbHelper.close();
+  }
+
+ /* public Comment createComment(String comment) {
+    ContentValues values = new ContentValues();
+    values.put(MySQLiteHelper.COLUMN_COMMENT, comment);
+    long insertId = database.insert(MySQLiteHelper.TABLE_COMMENTS, null,
+        values);
+    Cursor cursor = database.query(MySQLiteHelper.TABLE_COMMENTS,
+        allColumns, MySQLiteHelper.COLUMN_ID + " = " + insertId, null,
+        null, null, null);
+    cursor.moveToFirst();
+    Comment newComment = cursorToComment(cursor);
+    cursor.close();
+    return newComment;
+  }*/
+  
+  public UserTable createComment(String user_name, String user_school) {
+	    ContentValues values = new ContentValues();
+	    values.put(MySQLiteHelper.user_name, user_name);
+	    values.put(MySQLiteHelper.user_school, user_school);
+	    long insertId = database.insert(MySQLiteHelper.user_table, null,
+	        values);
+	    
+	    Cursor cursor = database.query(MySQLiteHelper.user_table,
+	        user_columns, MySQLiteHelper.user_id + " = " + insertId, null,
+	        null, null, null);
+	    cursor.moveToFirst();
+	    UserTable newComment = cursorToComment(cursor);
+	    cursor.close();
+	    return newComment;
+	  }
+
+  public void deleteComment(UserTable comment) {
+    long user_id = comment.get_user_id();
+    System.out.println("Comment deleted with id: " + user_id);
+    database.delete(MySQLiteHelper.user_table, MySQLiteHelper.user_id
+        + " = " + user_id, null);
+  }
+
+  public List<UserTable> getAllComments() {
+    List<UserTable> comments = new ArrayList<UserTable>();
+
+    Cursor cursor = database.query(MySQLiteHelper.user_table,
+        user_columns, null, null, null, null, null);
+   // Cursor cursor = database.rawQuery("select user_name from user_table",null);
+
+    cursor.moveToFirst();
+    while (!cursor.isAfterLast()) {
+      UserTable comment = cursorToComment(cursor);
+      comments.add(comment);
+      cursor.moveToNext();
+    }
+    // make sure to close the cursor
+    cursor.close();
+    return comments;
+  }
+  
+  public List<String> get_school() {
+	    List<String> get_school = new ArrayList<String>();
+
+	    Cursor cursor = database.query(MySQLiteHelper.user_table,
+	        user_columns, null, null, null, null, null);
+	   // Cursor cursor = database.rawQuery("select user_name from user_table",null);
+
+	    cursor.moveToFirst();
+	    while (!cursor.isAfterLast()) {
+	      //UserTable comment = cursorToComment(cursor);
+	    	UserTable user_school = get_user_School(cursor);
+	      get_school.add(user_school.toString());
+	      cursor.moveToNext();
+	    }
+	    // make sure to close the cursor
+	    cursor.close();
+	    return get_school;
+	  }
+
+  private UserTable cursorToComment(Cursor cursor) {
+    UserTable comment = new UserTable();
+    comment.set_user_id(cursor.getLong(0));
+    comment.set_user_name(cursor.getString(1));
+    comment.set_user_school(cursor.getString(2));
+    return comment;
+  }
+  private UserTable get_user_School(Cursor cursor) {
+	    UserTable user_school = new UserTable();
+	    //comment.set_user_id(cursor.getLong(0));
+	    //comment.set_user_name(cursor.getString(1));
+	    user_school.set_user_school(cursor.getString(2));
+	    return user_school;
+	  }
+} 
+

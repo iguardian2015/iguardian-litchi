@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;iguardian/res/layout/custom_row_view.xml&apos; to &apos;custom_assignment_row_view.xml&apos;" description="Rename resource &apos;custom_row_view.xml&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="res/layout/custom_row_view.xml" name="custom_assignment_row_view.xml" stamp="1409899224975" updateReferences="true"/>
+</session>

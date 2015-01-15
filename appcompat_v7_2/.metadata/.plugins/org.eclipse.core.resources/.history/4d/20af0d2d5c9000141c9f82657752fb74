@@ -1,0 +1,90 @@
+
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawerLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+    
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pager"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".MainActivity" />
+    
+    
+    <FrameLayout
+       android:id="@+id/mainContent"
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent" >
+    </FrameLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+				android:id="@+id/DrawerLinear"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                
+                android:layout_gravity="start"
+                android:layout_width="300dp">
+                <LinearLayout
+                    android:id="@+id/DrawerLinear2"
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent" >
+        <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_iguardian"
+        android:background="#ffffff" />
+                 
+	<TextView
+    android:id="@+id/choose_account" 
+    android:background="#Ffffff"
+    android:padding="5dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:text="Tap to Choose Account"
+    android:textSize="15sp"
+    android:gravity="center"
+    android:textStyle="bold"
+    />
+	</LinearLayout>
+     
+     
+     <Spinner
+        android:id="@+id/spinner_user"
+        android:background="#01DF3A"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        
+       	         
+         />
+    <!--  <ListView 
+        android:id="@+id/userList"
+        android:background="#Ffffff"
+        android:layout_width="match_parent"
+       android:layout_height="wrap_content" 
+       android:layout_gravity="left"
+      
+        > -->
+        
+        
+    <!-- </ListView> -->
+     
+    <ListView 
+        android:id="@+id/drawerList"
+        android:background="#Ffffff"
+        android:layout_width="match_parent"
+       android:layout_height="fill_parent" 
+       android:layout_gravity="left"
+      
+        >
+        
+        
+    </ListView>
+    </LinearLayout>
+    
+    
+     
+    
+</android.support.v4.widget.DrawerLayout>    

@@ -1,0 +1,460 @@
+package com.litchi.iguardian;
+
+import java.lang.reflect.Field;
+
+import java.util.HashMap;
+import java.util.List;
+
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.os.Bundle;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+public class MainActivity extends ActionBarActivity implements
+		OnItemClickListener {
+	private DrawerLayout drawerLayout;
+	private LinearLayout DrawerLinear;
+	private ListView listView;
+	ProgressDialog Dialog;
+	Fragment fragment = null;
+	private ActionBarDrawerToggle drawerListener;
+	private MyAdapter myAdapter;
+	Spinner spinner_user;
+	///String[] schoolName={"one","two"};
+	SessionManagement session;
+	 private UserDataSource datasource;
+	 public UserTable user_selected;
+	 public String school_selected;
+	 int check =0 ;
+	 String school ;
+	String username;
+	 //UserTable username1 ;
+
+	protected void onCreate(Bundle savedInstanceState) {
+		Log.i("Value of ","1");
+		super.onCreate(savedInstanceState);
+		Log.i("Value of ","2");
+		setContentView(R.layout.activity_main);
+		Log.i("Value of ","3");
+
+		session = new SessionManagement(getApplicationContext());
+		Log.i("Value of ","4");
+
+		if(session.checkLogin()==1)
+		{
+			Intent i = new Intent (getApplicationContext(), MainActivity.class);
+	        startActivity(i);
+	        finish();
+			//finish();
+			Log.i("Value of ","finish");
+			
+		}
+		Log.i("Value of ","5");
+		
+		//session = new SessionManagement(getActivity());
+		// StrictMode.enableDefaults();
+		//Class<?>  classType = Class.forName(username);
+		HashMap<String, String> user = session.getUserDetails();
+		Log.i("Value of ","6");
+		username = user.get(SessionManagement.KEY_NAME);
+		Log.i("Value of ","7");
+		school = user.get(SessionManagement.KEY_SCHOOL);
+		Log.i("Value of ","8");
+		//username1 = username ;
+
+		// HashMap<String, String> user = session.getUserDetails();
+
+		// name;
+		// String username = user.get(SessionManagement.KEY_NAME);
+		// String school = user.get(SessionManagement.KEY_SCHOOL);
+
+		listView = (ListView) findViewById(R.id.drawerList);
+		// listView.setAdapter(new
+		// ArrayAdapter<>(this,android.R.layout.simple_list_item_1, Planets));
+		myAdapter = new MyAdapter(this);
+		int k=0;
+		/*for(k=0 ; k< session.count ; i++)
+		{
+			schoolName[k] = 
+		}*/
+		//schoolName = session.user_account();
+		spinner_user = (Spinner) findViewById(R.id.spinner_user);
+		listView.setAdapter(myAdapter);
+		listView.setOnItemClickListener(this);
+		drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+		DrawerLinear = (LinearLayout) findViewById(R.id.DrawerLinear);
+		drawerListener = new ActionBarDrawerToggle(this, drawerLayout,
+				R.drawable.ic_drawer, R.string.drawer_open,
+				R.string.drawer_close);
+
+		drawerLayout.setDrawerListener(drawerListener);
+		android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		// actionBar.setHomeButtonEnabled(true);
+		// getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		//schoolName={"one", "tow"};
+		//ArrayAdapter<String> dataAdapter1 = new ArrayAdapter<String>(
+		//		getApplicationContext(), R.layout.spinner_item, schoolName);
+		//dataAdapter1.setDropDownViewResource(R.layout.spinner_item);
+		//spinnerAccount.setAdapter(dataAdapter1);
+		// spinner1.setPrompt("Select School");
+		///spinnerAccount.setAdapter(dataAdapter1);
+		
+		/*spinnerAccount.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				// TODO Auto-generated method stub
+				int index = arg0.getSelectedItemPosition();
+				//schoolSelected = schoolName[index];
+				// tv.setText(schoolSelected);
+
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});*/
+		datasource = new UserDataSource(this);
+	    datasource.open();
+
+	    List<UserTable> values = datasource.getAllComments();
+	    //List<String> school = datasource.get_school();
+
+		
+		
+		ArrayAdapter<UserTable> dataAdapter1 = new ArrayAdapter<UserTable>(
+				getApplicationContext(), R.layout.spinner_item, values);
+		dataAdapter1.setDropDownViewResource(R.layout.spinner_item);
+		//spinner_user.setAdapter(dataAdapter1);
+		// spinner1.setPrompt("Select School");
+		spinner_user.setAdapter(dataAdapter1);
+		String spinnerItem ;
+		int i ;
+		if (!username.equals(null))
+		{
+			for(i=0 ;  ;i++)
+	         {
+				spinnerItem = dataAdapter1.getItem(i).toString();
+				Log.i("Value of spin=",spinnerItem);
+				Log.i("Value of username=",username);
+				if(username.equals(spinnerItem))
+				{
+					Log.i("Value of spin2=",spinnerItem);
+					spinner_user.setSelection(i);
+			        i = 0;
+			        break;
+				}
+	         }
+	        
+	    }
+		
+		//int check =0;
+		spinner_user.setOnItemSelectedListener(new OnItemSelectedListener() {
+			
+			
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View arg1,
+					int arg2, long arg3) {
+				check  = check +1 ;
+				// TODO Auto-generated method stub
+				if(check>1)
+				{
+				int index = parent.getSelectedItemPosition();
+				//user_selected = values.get(index);
+				// tv.setText(schoolSelected);
+				user_selected = (UserTable) parent.getSelectedItem();
+				 List<String> school = datasource.get_school();
+				school_selected = school.get(index);
+				Log.i("Value of user = ",user_selected.toString());
+				Log.i("Value of school = ",school_selected);
+				Log.i("Value of ","index=" + index);
+				//Log.i("Value of element = ",user_selected.toString());
+				session.manageLoginSession(user_selected.toString(),
+						school_selected);
+				
+				
+				drawerLayout.closeDrawer(DrawerLinear);
+				spinner_user.setSelection(index);
+				
+				/*Intent intent = getIntent();
+				finish();
+				intent.setFlags(intent.getFlags()
+						| Intent.FLAG_ACTIVITY_NO_HISTORY);
+				startActivity(intent);*/
+				
+				fragment = new MainStudent();
+				FragmentManager frgManager = getSupportFragmentManager();
+				frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+						.commit();
+				
+				/*Intent intent = new Intent(MainActivity.this,
+						MainActivity.class);
+				intent.setFlags(intent.getFlags()
+						| Intent.FLAG_ACTIVITY_NO_HISTORY);
+				MainActivity.this.startActivity(intent);
+
+				MainActivity.this.finish();*/
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+	
+
+		getOverflowMenu();
+
+		fragment = new MainStudent();
+		FragmentManager frgManager = getSupportFragmentManager();
+		frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+				.commit();
+
+	}
+
+	private void getOverflowMenu() {
+
+		try {
+			ViewConfiguration config = ViewConfiguration.get(this);
+			Field menuKeyField = ViewConfiguration.class
+					.getDeclaredField("sHasPermanentMenuKey");
+			if (menuKeyField != null) {
+				menuKeyField.setAccessible(true);
+				menuKeyField.setBoolean(config, false);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu items for use in the action bar
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_activity_actions, menu);
+		//boolean drawerOpen = drawerLayout.isDrawerOpen(DrawerLinear);
+	    //menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		if (drawerListener.onOptionsItemSelected(item)) {
+			return true;
+		}
+
+		int itemId = item.getItemId();
+		if (itemId == R.id.action_logout) {
+			session.logoutUser();
+			MainActivity.this.finish();
+			return true;
+		}
+		if (itemId == R.id.action_add_account) {
+			Intent intent = new Intent(MainActivity.this,
+					LoginActivity.class);
+			MainActivity.this.startActivity(intent);
+
+		}
+
+		return super.onOptionsItemSelected(item);
+
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+		drawerListener.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onPostCreate(savedInstanceState);
+		drawerListener.syncState();
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+			long arg3) {
+		selectItem(position);
+		listView.setItemChecked(position, true);
+		drawerLayout.closeDrawer(DrawerLinear);
+		//DrawerLinear.closeDrawer(listView);
+		if (position == 0) {
+
+			fragment = new MainStudent();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+
+		}
+		if (position == 1) {
+			fragment = new Assignments();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 2) {
+			fragment = new Attendance();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+
+		}
+		if (position == 3) {
+			fragment = new Inbox();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+
+		}
+		if (position == 4) {
+			fragment = new Outbox();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 5) {
+			fragment = new ComposeMessage();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 6) {
+			fragment = new Marks();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+		if (position == 7) {
+			fragment = new TimeTable();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 8) {
+			fragment = new ExamSchedule();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+		if (position == 9) {
+			fragment = new Circulars();
+			FragmentManager frgManager = getSupportFragmentManager();
+			frgManager.beginTransaction().replace(R.id.mainContent, fragment)
+					.commit();
+			drawerLayout.closeDrawers();
+		}
+
+	}
+
+	public void selectItem(int position) {
+
+		listView.setItemChecked(position, true);
+
+	}
+
+}
+
+class MyAdapter extends BaseAdapter {
+	private Context context;
+	String[] iguardianmenu;
+	int[] images = { R.drawable.student, R.drawable.assignment_icon,
+			R.drawable.attendance_icon, R.drawable.inbox, R.drawable.outbox,
+			R.drawable.compose_message, R.drawable.marks_icon,
+			R.drawable.time_table, R.drawable.exam_schedule,
+			R.drawable.circular_icon
+
+	};
+
+	public MyAdapter(Context context) {
+		// TODO Auto-generated constructor stub
+		this.context = context;
+		iguardianmenu = context.getResources().getStringArray(R.array.imenu);
+
+	}
+
+	@Override
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return iguardianmenu.length;
+	}
+
+	@Override
+	public Object getItem(int position) {
+		// TODO Auto-generated method stub
+		return iguardianmenu[position];
+	}
+
+	@Override
+	public long getItemId(int position) {
+		// TODO Auto-generated method stub
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		// TODO Auto-generated method stub
+		View row = null;
+		if (convertView == null) {
+			LayoutInflater inflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			row = inflater.inflate(R.layout.findrow, parent, false);
+		} else {
+			row = convertView;
+
+		}
+		TextView titleTextView = (TextView) row.findViewById(R.id.textView1);
+		ImageView titleImageView = (ImageView) row
+				.findViewById(R.id.imageView1);
+		titleTextView.setText(iguardianmenu[position]);
+		titleImageView.setImageResource(images[position]);
+		return row;
+	}
+
+}

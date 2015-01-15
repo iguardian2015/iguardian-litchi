@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+        <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:textColor="#525250"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="italic" 
+        android:background="#E0FA99"
+        android:padding="5dp"/>
+    <TextView
+        android:id="@+id/message_subject"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:textColor="#525250"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="italic" 
+        android:padding="5dp"/>
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:textColor="#525250"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="italic" 
+        android:padding="5dp"/>
+    <ScrollView android:layout_width="wrap_content"
+    android:layout_height="wrap_content" android:layout_weight="1">
+    
+    <TextView
+        android:id="@+id/mes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:textColor="#525250"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="italic" 
+        android:padding="5dp"
+        android:textSize="20dp"
+        android:paddingTop="10dp"/>
+   </ScrollView>
+    <EditText
+    android:id="@+id/reply_message"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="15dp"
+    
+    android:singleLine="false"
+    android:hint="Write message..."
+    android:inputType="text" />
+    <Button
+        android:id="@+id/send_message"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Send"
+     />
+    
+
+</LinearLayout>

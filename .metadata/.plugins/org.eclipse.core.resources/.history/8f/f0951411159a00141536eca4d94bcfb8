@@ -1,0 +1,238 @@
+package com.litchi.iguardian;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+public class SelectSchool extends Activity {
+	ListView select_school;
+	Button b;
+	EditText et, pass;
+	TextView tv;
+	HttpPost httppost;
+	StringBuffer buffer;
+	HttpResponse response;
+	HttpClient httpclient;
+	List<NameValuePair> nameValuePairs;
+	ProgressDialog dialog = null;
+	String[] schoolName, schoolCode, schoolDb;
+	Spinner spinner1;
+	// ProgressDialog ringProgressDialog = null;
+	static String schoolSelected = "";
+	//static String school = "";
+	static String dbSelected = "";
+	String result = "";
+
+	InputStream isr = null;
+	// List<String> list1 = new ArrayList<String>();
+	ArrayList<HashMap<String, String>> list1 =
+
+	new ArrayList<HashMap<String, String>>();
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.assignment);
+
+		new dataget().execute();
+
+		select_school = (ListView) findViewById(R.id.listView1);
+
+		select_school
+				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+					public void onItemClick(AdapterView<?> arg0, View arg1,
+							int position, long arg3) {
+						Intent intent = new Intent(SelectSchool.this,
+								LoginActivity.class);
+						Log.i("df", "ok");
+
+						// schoolSelected = list1.get(position).toString();
+						schoolSelected = schoolCode[position];
+						dbSelected = schoolDb[position];
+
+						Log.i("School", schoolSelected);
+						// intent.putExtra("school_choose", item);
+						// intent.putExtra("selected", 1);
+						/*
+						 * intent.putExtra("date", item.get("date").toString());
+						 * intent.putExtra("assign",
+						 * item.get("assign").toString());
+						 * intent.putExtra("assignment_link",
+						 * item.get("assignment_link").toString());
+						 */
+						// intent.putExtra("message_id",
+						// item.get("message_id").toString());
+						intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+						SelectSchool.this.startActivity(intent);
+						finish();
+					}
+				});
+
+	}
+
+	private class dataget extends AsyncTask<Void, Void, String> {
+
+		@Override
+		protected String doInBackground(Void... params) {
+			getData();
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			// TextView txt = (TextView) findViewById(R.id.output);
+			// txt.setText("Executed"); // txt.setText(result);
+			// might want to change "executed" for the returned string passed
+			// into onPostExecute() but that is upto you
+
+			
+
+			try {
+				SimpleAdapter adapter = new SimpleAdapter(SelectSchool.this,
+						list1, R.layout.custom_school_list,
+						new String[] { "school" }, new int[] { R.id.subject }
+
+				);
+
+				select_school.setAdapter(adapter);
+			} catch (Exception e) {
+				Log.e("log_tag", "Error " + e.toString());
+
+			}
+
+			dialog.dismiss();
+		}
+
+		@Override
+		protected void onPreExecute() {
+			dialog = ProgressDialog.show(SelectSchool.this, "",
+					"Please Wait..", true);
+
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+
+	}
+
+	public void getschool_code() {
+
+		try {
+			httpclient = new DefaultHttpClient();
+			httppost = new HttpPost(
+					"http://npaneer.iguardianerp.co.in/school.php");
+			HttpResponse response = httpclient.execute(httppost);
+			HttpEntity entity = response.getEntity();
+			isr = entity.getContent();
+
+		} catch (Exception e) {
+			Log.e("log_tag", "Error in http connection" + e.toString());
+			InternetAlert();
+
+		}
+		
+		try {
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(isr, "iso-8859-1"), 8);
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+
+			}
+			isr.close();
+
+			result = sb.toString();
+
+		} catch (Exception e) {
+			Log.e("log_tag", "Error coverting result " + e.toString());
+			InternetAlert();
+
+		}
+		try {
+
+			JSONArray jArray = new JSONArray(result);
+			schoolName = new String[jArray.length()];
+			schoolCode = new String[jArray.length()];
+			schoolDb= new String[jArray.length()];
+
+			for (int i = 0; i < jArray.length(); i++) {
+				JSONObject json = jArray.getJSONObject(i);
+				schoolName[i] = json.getString("school_name");
+				schoolCode[i] = json.getString("school_code");
+				schoolDb[i] = json.getString("school_db");
+				HashMap<String, String> temp = new HashMap<String, String>();
+				temp.put("school", "" + json.getString("school_name") + "");
+				list1.add(temp);
+
+			}
+
+			/*
+			 * for (int i = 0; i < schoolName.length; i++) {
+			 * list1.add(schoolName[i]);
+			 * 
+			 * }
+			 */
+		} catch (Exception e) {
+			Log.e("log_tag", "Error Parsing data " + e.toString());
+			InternetAlert();
+
+		}
+
+	}
+
+	public void InternetAlert() {
+		this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						SelectSchool.this);
+				builder.setTitle("Connection Error");
+				builder.setMessage("Check Internet Connection")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+}

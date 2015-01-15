@@ -1,0 +1,105 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".LoginActivity" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="false"
+        android:orientation="vertical"
+        android:padding="10dp" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/iguardian" />
+
+        <TextView
+            android:id="@+id/heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Parent Login"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- <Spinner
+            android:id="@+id/spinner1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" /> -->
+            
+            <Button
+            android:id="@+id/select_school"
+            style="@style/DefaultButtonText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/button_school_select"
+            android:padding="10dp"
+            android:text="Select School" />
+            <TextView
+            android:id="@+id/school_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            
+            android:textSize="15sp"
+            android:textStyle="bold" />
+            
+            <EditText
+            android:id="@+id/school_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-2dp"
+            android:background="@drawable/edittext_default_bg"
+            android:drawableLeft="@drawable/school-icon"
+            android:hint="User Name"
+            android:padding="10dp"
+            android:singleLine="true"
+            android:imeOptions="actionDone"
+            android:textColorHint="#bbbbbb" />
+
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-2dp"
+            android:background="@drawable/edittext_default_bg"
+            android:drawableLeft="@drawable/user"
+            android:hint="User Name"
+            android:padding="10dp"
+            android:singleLine="true"
+            android:imeOptions="actionDone"
+            android:textColorHint="#bbbbbb" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-2dp"
+            android:background="@drawable/edittext_bottom_bg"
+            android:drawableLeft="@drawable/password"
+            android:hint="Password"
+            android:padding="10dp"
+            android:password="true"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:textColorHint="#bbbbbb" />
+
+        <Button
+            android:id="@+id/Button01"
+            style="@style/DefaultButtonText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/button_default_bg"
+            android:padding="10dp"
+            android:text="Sign In" />
+        
+        
+        
+    </LinearLayout>
+
+</ScrollView>

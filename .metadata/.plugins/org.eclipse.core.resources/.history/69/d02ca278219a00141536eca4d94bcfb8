@@ -1,0 +1,607 @@
+package com.litchi.iguardian;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.google.android.gcm.GCMRegistrar;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.EditorInfo;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class LoginActivity extends Activity {
+	Button b, select_school;
+	EditText et, pass, school_code;
+	TextView tv;
+	HttpPost httppost;
+	StringBuffer buffer;
+	HttpResponse response;
+	HttpClient httpclient;
+	List<NameValuePair> nameValuePairs;
+	List<NameValuePair> nameValuePairs2;
+	ProgressDialog dialog = null;
+	String[] schoolName;
+	Spinner spinner1;
+	// ProgressDialog ringProgressDialog = null;
+	public String schoolSelected = "";
+	public String dbSelected = "";
+	String result = "";
+	InputStream isr = null;
+	String school_db_name ;
+	//final List<String> list1 = new ArrayList<String>();
+	
+	ArrayList<HashMap<String, String>> list1 =
+
+			new ArrayList<HashMap<String, String>>();
+
+	SessionManagement session;
+	private UserDataSource datasource;
+	String school_choosen;
+	String[]  schoolCode, schoolDb;
+	int selected;
+	String username, school_db;
+	String scl_code ;
+	HttpResponse response2;
+
+	private String TAG = "** pushAndroidActivity **";
+
+	// private TextView mDisplay;
+
+	TextView RuA, paC, DEF;
+	TextView Defense_Tackles[];
+
+	AsyncTask<Void, Void, Void> mRegisterTask;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_login_activity);
+		getWindow().setSoftInputMode(
+				WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+		getWindow().setSoftInputMode(
+				WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+		datasource = new UserDataSource(this);
+		datasource.open();
+
+		b = (Button) findViewById(R.id.Button01);
+		//select_school = (Button) findViewById(R.id.select_school);
+		//select_school.setVisibility(View.INVISIBLE);
+		school_code = (EditText) findViewById(R.id.school_code);
+		et = (EditText) findViewById(R.id.username);
+		pass = (EditText) findViewById(R.id.password);
+		
+		et.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		pass.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		school_code.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		// spinner1 = (Spinner) findViewById(R.id.spinner1);
+		//tv = (TextView) findViewById(R.id.school_status);
+
+		session = new SessionManagement(getApplicationContext());
+
+		
+
+		/*registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));
+*/
+		b.setOnClickListener(new OnClickListener() {
+			int check = 0;
+			List<String> user_name = datasource.get_user_name();
+
+			@Override
+			public void onClick(View v) {
+				check = 0;
+				scl_code = school_code.getText().toString().trim();
+				Log.i("qqqq", scl_code);
+				if (scl_code.length() == 0) {
+					schoolAlert();
+					check = 1;
+				} else if (et.getText().toString().trim().length() == 0) {
+					userAlert();
+					check = 1;
+
+				} else if (pass.getText().toString().trim().length() == 0) {
+					passAlert();
+					check = 1;
+				} else {
+					for (int i = 0; i < user_name.size(); i++) {
+						if (et.getText().toString().trim()
+								.equals(user_name.get(i))) {
+							user_same_alert();
+							check = 1;
+						}
+
+					}
+				}
+
+				if (check == 0) {
+
+					dialog = ProgressDialog.show(LoginActivity.this, "",
+							"Please Wait..", true);
+					new Thread(new Runnable() {
+						public void run() {
+							getSchoolDb();
+							login();
+						}
+					}).start();
+
+				}
+
+			}
+		}); // b.setOnClickListener terminated
+
+		/*select_school.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+
+				Intent intent = new Intent(LoginActivity.this,
+						SelectSchool.class);
+				// intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+
+			}
+		});
+*/
+	} // on create terminated
+
+	void login() {
+		
+		
+		
+
+		try { /*
+			 * dialog = ProgressDialog.show(LoginActivity.this, "",
+			 * "Validating user...", true);
+			 */
+
+			httpclient = new DefaultHttpClient();
+			httppost = new HttpPost(
+					"http://npaneer.iguardianerp.co.in/login.php");
+
+			nameValuePairs = new ArrayList<NameValuePair>(3);
+			// tv.setText("vhpppi");
+
+			nameValuePairs.add(new BasicNameValuePair("username", et.getText()
+					.toString().trim())); // $Edittext_value =
+											// $_POST['Edittext_value'];
+			nameValuePairs.add(new BasicNameValuePair("password", pass
+					.getText().toString().trim()));
+			// tv.setText("vhiccc");
+			// nameValuePairs.add(new BasicNameValuePair("schoolSelected",
+			// schoolSelected.trim()));
+//			nameValuePairs.add(new BasicNameValuePair("dbSelected", dbSelected
+//					.trim()));
+			nameValuePairs.add(new BasicNameValuePair("school_code", scl_code));
+			// tv.setText("vhisjdskdj");
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			// Execute HTTP Post Request
+			response = httpclient.execute(httppost);
+
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			final String response = httpclient.execute(httppost,
+					responseHandler);
+			System.out.println("Response : " + response);
+			// tv.setText(response);
+			 // run on ui thread terminated
+
+			// dialog.dismiss();
+
+			if (response.equalsIgnoreCase("User Found")) {
+				// tv.setText("vhsjdskdi");
+				session.createLoginSession(et.getText().toString().trim(),
+						dbSelected.trim());
+				datasource.createComment(et.getText().toString().trim(),
+						dbSelected.trim());
+				datasource.close();
+
+				checkNotNull(CommonUtilities.SENDER_ID, "SENDER_ID");
+				// Make sure the device has the proper dependencies.
+				GCMRegistrar.checkDevice(this);
+				// Make sure the manifest was properly set - comment out this
+				// line
+				// while developing the app, then uncomment it when it's ready.
+				GCMRegistrar.checkManifest(this);
+				// setContentView(R.layout.activity_demo);
+				// mDisplay = (TextView) findViewById(R.id.display);
+
+				final String regId = GCMRegistrar.getRegistrationId(this);
+				if (regId.equals("")) {
+					// Automatically registers application on startup.
+					GCMRegistrar.register(this, CommonUtilities.SENDER_ID);
+
+				} else {
+					Log.i("Already Registered :", regId);
+
+					try {
+
+						SessionManagement sess = new SessionManagement(this);
+						// sess.register_id(regId);
+
+						// SessionManagement sess = new SessionManagement(this);
+						HashMap<String, String> user = sess.getUserDetails();
+						username = user.get(SessionManagement.KEY_NAME);
+						school_db = user.get(SessionManagement.KEY_DB);
+
+						httpclient = new DefaultHttpClient();
+						httppost = new HttpPost(
+								"http://npaneer.iguardianerp.co.in/register.php");
+
+						nameValuePairs = new ArrayList<NameValuePair>(3);
+						// tv.setText("vhpppi");
+
+						nameValuePairs.add(new BasicNameValuePair("reg_id",
+								regId)); // $Edittext_value
+											// =
+						nameValuePairs.add(new BasicNameValuePair("username",
+								username));
+						nameValuePairs.add(new BasicNameValuePair("dbSelected",
+								dbSelected));
+
+						// tv.setText("vhisjdskdj");
+						httppost.setEntity(new UrlEncodedFormEntity(
+								nameValuePairs));
+
+						HttpResponse response2 = httpclient.execute(httppost);
+						HttpEntity entity = response2.getEntity();
+						isr = entity.getContent();
+
+					} // try terminated
+
+					catch (Exception e) {
+						// dialog.dismiss();
+						System.out.println("Exception : " + e.getMessage());
+						// InternetAlert();
+					}
+
+				}
+				
+				runOnUiThread(new Runnable() {
+					public void run() {
+						// tv.setText("Response from PHP : " + response);
+						dialog.dismiss();
+					}
+				});
+
+				
+
+				runOnUiThread(new Runnable() {
+					public void run() {
+						// ringProgressDialog.dismiss();
+						// dialog.dismiss();
+						Toast.makeText(LoginActivity.this, "Login Success",
+								Toast.LENGTH_SHORT).show();
+
+					}
+				}); // run on ui thread terminated
+				Intent intent = new Intent(LoginActivity.this,
+						MainActivity.class);
+				intent.setFlags(intent.getFlags()
+						| Intent.FLAG_ACTIVITY_NO_HISTORY);
+				LoginActivity.this.startActivity(intent);
+
+				LoginActivity.this.finish();
+
+			} else {
+				showAlert();
+				runOnUiThread(new Runnable() {
+					public void run() {
+						// tv.setText("Response from PHP : " + response);
+						dialog.dismiss();
+					}   
+				});
+
+			}
+
+		} // try terminated
+
+		catch (Exception e) {
+			dialog.dismiss();
+			System.out.println("Exception : " + e.getMessage());
+		}
+
+	} // void login terminated
+	
+	
+	public void getSchoolDb() {
+
+		try {
+			
+			
+			
+			httpclient = new DefaultHttpClient();
+			httppost = new HttpPost(
+					"http://npaneer.iguardianerp.co.in/school.php");
+
+			nameValuePairs = new ArrayList<NameValuePair>(2);
+			// tv.setText("vhpppi");
+
+			nameValuePairs.add(new BasicNameValuePair("school_code", scl_code)); // $Edittext_value =
+											// $_POST['Edittext_value'];
+			nameValuePairs.add(new BasicNameValuePair("password", pass
+					.getText().toString().trim()));
+			// tv.setText("vhiccc");
+			// nameValuePairs.add(new BasicNameValuePair("schoolSelected",
+			// schoolSelected.trim()));
+			/*nameValuePairs.add(new BasicNameValuePair("dbSelected", dbSelected
+					.trim()));*/
+			// tv.setText("vhisjdskdj");
+		/*	httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			// Execute HTTP Post Request
+			response = httpclient.execute(httppost);
+
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			final String response = httpclient.execute(httppost,
+					responseHandler);
+			System.out.println("Response : " + response);*/
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+			response = httpclient.execute(httppost);
+			HttpEntity entity = response.getEntity();
+			isr = entity.getContent();
+			
+
+		} catch (Exception e) {
+			Log.e("log_tag", "Error in http connection" + e.toString());
+			InternetAlert();
+
+		}
+		
+		try {
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(isr, "iso-8859-1"), 8);
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+
+			}
+			isr.close();
+
+			result = sb.toString();
+
+		} catch (Exception e) {
+			Log.e("log_tag", "Error coverting result " + e.toString());
+			InternetAlert();
+
+		}
+		try {
+			Log.i("qqqq", "q1");
+			JSONArray jArray = new JSONArray(result);
+			Log.i("qqqq", "q1");
+			schoolName = new String[jArray.length()];
+			Log.i("qqqq", "q2");
+			//schoolCode = new String[jArray.length()];
+			schoolDb= new String[jArray.length()];
+			Log.i("qqqq", "q3");
+
+			for (int i = 0; i < jArray.length(); i++) {
+				Log.i("qqqq", "q4");
+				JSONObject json = jArray.getJSONObject(i);
+				Log.i("qqqq", "q5");
+				schoolName[i] = json.getString("school_name");
+				Log.i("qqqq", "q6");
+				//schoolCode[i] = json.getString("school_code");
+				dbSelected = json.getString("school_db");
+				Log.i("qqqq", "q7");
+				/*HashMap<String, String> temp = new HashMap<String, String>();
+				temp.put("school", "" + json.getString("school_name") + "");
+				list1.add(temp);*/
+
+			}
+
+			
+		} catch (Exception e) {
+			Log.e("log_tag", "Error Parsing data " + e.toString());
+			InternetAlert();
+
+		}
+
+	}
+
+	public void showAlert() {
+		LoginActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Login Error.");
+				builder.setMessage("Please enter correct login details")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	public void userAlert() {
+		LoginActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Login Error.");
+				builder.setMessage("Please Enter User Name")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	public void user_same_alert() {
+		LoginActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Login Error.");
+				builder.setMessage("User already logged in")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	public void passAlert() {
+		LoginActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Login Error.");
+				builder.setMessage("Please Enter Password")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	public void schoolAlert() {
+		LoginActivity.this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Login Error.");
+				builder.setMessage("Enter School code")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	public void InternetAlert() {
+		this.runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						LoginActivity.this);
+				builder.setTitle("Connection Error");
+				builder.setMessage("Check Internet Connection")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+	/*@Override
+	public void onStop() {
+		super.onStop();
+		unregisterReceiver(mHandleMessageReceiver);
+	}
+	@Override
+	public void onStart() {
+		super.onStart();
+		registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));
+	}
+	
+	
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		unregisterReceiver(mHandleMessageReceiver);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		// put your code here...
+		registerReceiver(mHandleMessageReceiver, new IntentFilter(
+				CommonUtilities.DISPLAY_MESSAGE_ACTION));
+
+	}
+
+	
+
+	private final BroadcastReceiver mHandleMessageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String newMessage = intent.getExtras().getString(
+					CommonUtilities.EXTRA_MESSAGE);
+			// mDisplay.append(newMessage + "\n");
+		}
+	};*/
+	private void checkNotNull(Object reference, String name) {
+		if (reference == null) {
+			throw new NullPointerException(getString(R.string.error_config,
+					name));
+		}
+	}
+
+}
+
+// LoginActivity terminated

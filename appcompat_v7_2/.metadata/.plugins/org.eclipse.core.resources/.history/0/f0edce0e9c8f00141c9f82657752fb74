@@ -1,0 +1,105 @@
+package com.litchi.iguardian;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import android.app.Activity;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+
+public class Test_database extends Activity {
+	private CommentsDataSource datasource;
+	SessionManagement session;
+	String school, username;
+	private SQLiteDatabase database;
+	  private MySQLiteHelper dbHelper;
+	  private String[] user_columns = { MySQLiteHelper.user_id,
+		      MySQLiteHelper.user_name, MySQLiteHelper.user_school };
+
+
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_test_database);
+		
+		
+		session = new SessionManagement(this);
+		// StrictMode.enableDefaults();
+
+		HashMap<String, String> user = session.getUserDetails();
+		username = user.get(SessionManagement.KEY_NAME);
+		school = user.get(SessionManagement.KEY_SCHOOL);
+
+		
+		/*datasource = new CommentsDataSource(this);
+	    datasource.open();
+
+	    List<Comment> values = datasource.getAllComments();
+
+	    // use the SimpleCursorAdapter to show the
+	    // elements in a ListView
+	    ArrayAdapter<Comment> adapter = new ArrayAdapter<Comment>(this,
+	        android.R.layout.simple_list_item_1, values);
+	    setListAdapter(adapter);
+	    
+	    ArrayAdapter<Comment> adapter2 = (ArrayAdapter<Comment>) getListAdapter();
+	    Comment comment = null;
+	    
+	    String[] comments = new String[] { "Cool", "Very nice", "Hate it" };
+	      //int nextInt = new Random().nextInt(3);
+	      // save the new comment to the database
+	      //comment = datasource.createComment(comments);
+	      adapter.add(comment);*/
+	  
+	}
+	
+	public Test_database(Context context) {
+	    dbHelper = new MySQLiteHelper(context);
+	  }
+
+	  public void open() throws SQLException {
+	    database = dbHelper.getWritableDatabase();
+	  }
+
+	  public void close() {
+	    dbHelper.close();
+	  }
+	  
+	  public List<Comment> getAllComments() {
+		    List<Comment> comments = new ArrayList<Comment>();
+
+		    Cursor cursor = database.query(MySQLiteHelper.user_table,
+		        user_columns, null, null, null, null, null);
+
+		    cursor.moveToFirst();
+		    while (!cursor.isAfterLast()) {
+		      Comment comment = cursorToComment(cursor);
+		      comments.add(comment);
+		      cursor.moveToNext();
+		    }
+		    // make sure to close the cursor
+		    cursor.close();
+		    return comments;
+		  }
+	  
+	 /* ArrayAdapter adapter = new ArrayAdapter<String>(this,  
+		      android.R.layout.simple_list_item_1, 
+		      comments);
+	  */
+
+	  private Comment cursorToComment(Cursor cursor) {
+	    Comment comment = new Comment();
+	    comment.set_user_id(cursor.getLong(0));
+	    comment.set_user_name(cursor.getString(1));
+	    comment.set_user_school(cursor.getString(2));
+	    return comment;
+	  }
+}

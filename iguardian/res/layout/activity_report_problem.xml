@@ -1,0 +1,44 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".ComposeMessage" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="false"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:paddingTop="30dp" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:src="@drawable/iguardian" />
+
+        <EditText
+            android:id="@+id/write_report"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/edittext_default_bg"
+            android:hint="Write your problem"
+            android:imeOptions="actionDone"
+            android:padding="10dp"
+            android:paddingTop="20dp"
+            android:singleLine="true"
+            android:textColorHint="#bbbbbb" />
+
+        <Button
+            android:id="@+id/send_report"
+            style="@style/DefaultButtonText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="120dp"
+            android:background="@drawable/button_default_bg"
+            android:padding="10dp"
+            android:text="Send Report" />
+    </LinearLayout>
+
+</ScrollView>

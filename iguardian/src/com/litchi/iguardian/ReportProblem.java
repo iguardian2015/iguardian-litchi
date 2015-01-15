@@ -1,0 +1,260 @@
+package com.litchi.iguardian;
+
+import java.util.ArrayList;
+
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import android.app.AlertDialog;
+import android.support.v4.app.FragmentTransaction;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+
+public class ReportProblem extends Fragment {
+
+	EditText write_problem;
+	Button send_report;
+	SessionManagement session;
+	Fragment fragment = null;
+	String school_db, username;
+	ProgressDialog dilog;
+	HttpResponse response;
+	HttpClient httpclient;
+	HttpPost httppost;
+	StringBuffer buffer;
+	List<NameValuePair> nameValuePairs;
+
+	public ReportProblem() {
+		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		View view = inflater.inflate(R.layout.activity_report_problem,
+				container, false);
+		getActivity().setTitle("Report Problem");
+
+		session = new SessionManagement(getActivity());
+		HashMap<String, String> user = session.getUserDetails();
+		username = user.get(SessionManagement.KEY_NAME);
+		school_db = user.get(SessionManagement.KEY_DB);
+
+		write_problem = (EditText) view.findViewById(R.id.write_report);
+		write_problem.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		send_report = (Button) view.findViewById(R.id.send_report);
+
+		send_report.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+
+				if (write_problem.getText().toString().trim().length() == 0) {
+					userAlert2();
+				} else {
+					// sendData();
+					new Composesend().execute();
+
+				}
+			}
+		}); // b.setOnC
+
+		return view;
+
+	}
+
+	public void userAlert2() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Error.");
+				builder.setMessage("Field can't be empty")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}
+
+	private class Composesend extends AsyncTask<Void, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected String doInBackground(Void... params) {
+			sendData();
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+
+			dialog.dismiss();
+			replyAlert2();
+			write_problem.setText("");
+			// InputMethodManager imm = (InputMethodManager)
+			// getSystemService(INPUT_METHOD_SERVICE);
+			// imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+			// 0);
+
+			// message_subject.setText("");
+		}
+
+		@Override
+		protected void onPreExecute() {
+			dialog = ProgressDialog.show(getActivity(), "", "Please Wait..",
+					true);
+
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+
+		void sendData() {
+			try {
+
+				httpclient = new DefaultHttpClient();
+				httppost = new HttpPost(
+						"http://npaneer.iguardianerp.co.in/report_problem.php");
+
+				nameValuePairs = new ArrayList<NameValuePair>(3);
+				// tv.setText("vhpppi");
+
+				nameValuePairs
+						.add(new BasicNameValuePair("username", username)); // $Edittext_value
+																			// =
+																			// $_POST['Edittext_value'];
+
+				nameValuePairs.add(new BasicNameValuePair("dbSelected",
+						school_db));
+
+				nameValuePairs.add(new BasicNameValuePair("new_message",
+						write_problem.getText().toString().trim()));
+				// nameValuePairs.add(new
+				// BasicNameValuePair("password",pass.getText().toString().trim()));
+				// tv.setText("vhiccc");
+
+				// tv.setText("vhisjdskdj");
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				// Execute HTTP Post Request
+				// response=httpclient.execute(httppost);
+
+				HttpResponse response = httpclient.execute(httppost);
+				HttpEntity entity = response.getEntity();
+
+			} // try terminated
+
+			catch (Exception e) {
+				dialog.dismiss();
+				System.out.println("Exception : " + e.getMessage());
+			}
+
+		} // void login
+
+	}
+
+	public void replyAlert2() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Status");
+				builder.setMessage(
+						"We have received your request, it may take us a while to respond. Thanks for your patience and support. Our team will get back to you soon.")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+	
+	public void DataAlert() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Error");
+				builder.setMessage("No Data Found")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		/*fragment = new MainStudent();
+		fragment.setArguments(null);
+		
+		FragmentManager fragmentManager = getFragmentManager();
+		fragmentManager.beginTransaction().add(R.id.mainContent, fragment).addToBackStack("back")
+		.commit();*/
+		
+		/*fragment = new MainStudent();
+		FragmentManager frgManager = getChildFragmentManager();
+		frgManager.beginTransaction().replace(R.id.mainContent, fragment).addToBackStack("back")
+				.commit();*/
+		/*android.support.v4.app.Fragment fragment = new MainStudent();
+		//detail.setArguments(bundle);
+		android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
+		fragmentManager.beginTransaction()
+		.add(R.id.mainContent, fragment).addToBackStack("back")
+		.commit();*/
+	}
+	
+	/*@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    if (keyCode == KeyEvent.KEYCODE_BACK) {
+	        // your code
+	        return true;
+	    }
+
+	    return super.onKeyDown(keyCode, event);
+	}
+*/
+	
+}

@@ -1,0 +1,222 @@
+package com.litchi.iguardian;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+public class Assignments extends Fragment {
+
+	// ImageView ivIcon;
+	TextView tvItemName;
+	ListView assignments;
+	// TextView assignments;
+	HttpPost httppost;
+	InputStream isr = null;
+	String result = "";
+	StringBuffer buffer;
+	HttpResponse response;
+	HttpClient httpclient;
+	List<NameValuePair> nameValuePairs;
+	private ProgressDialog dialog = null;
+	String[] assign;
+	Button download_button ;
+	// Spinner spinner1;
+	// public String schoolSelected;
+	SessionManagement session;
+	ArrayList<HashMap<String, String>> list =
+
+			new ArrayList<HashMap<String, String>>();
+	String school, username;
+
+	public Assignments() {
+
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		View view = inflater.inflate(R.layout.assignment, container, false);
+
+		getActivity().setTitle("Assignments");
+
+		assignments = (ListView) view.findViewById(R.id.listView1);
+		download_button = (Button) view.findViewById(R.id.download);
+
+		session = new SessionManagement(getActivity());
+		// StrictMode.enableDefaults();
+
+		HashMap<String, String> user = session.getUserDetails();
+		username = user.get(SessionManagement.KEY_NAME);
+		school = user.get(SessionManagement.KEY_SCHOOL);
+
+		// getData();
+		new Assignmentget().execute();
+
+		return view;
+	}
+
+	private class Assignmentget extends AsyncTask<Void, Void, String> {
+
+		@Override
+		protected String doInBackground(Void... params) {
+			getData(username, school);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+
+			SimpleAdapter adapter = new SimpleAdapter(getActivity(), list,
+					R.layout.custom_assignment_row_view, new String[] { "subject",
+							"assign", "date" }, new int[] { R.id.text2,
+							R.id.text1, R.id.text3 }
+
+			);
+
+			assignments.setAdapter(adapter);
+			
+			dialog.dismiss();
+		}
+
+		@Override
+		protected void onPreExecute() {
+			dialog = ProgressDialog.show(getActivity(), "", "Please Wait..",
+					true);
+
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+
+		void getData(String username, String school) {
+
+			try {
+				httpclient = new DefaultHttpClient();
+				httppost = new HttpPost(
+						"http://npaneer.iguardianerp.co.in/assignment.php");
+
+				nameValuePairs = new ArrayList<NameValuePair>(2);
+				// tv.setText("vhpppi");
+
+				nameValuePairs
+						.add(new BasicNameValuePair("username", username)); // $Edittext_value
+																			// =
+																			// $_POST['Edittext_value'];
+
+				nameValuePairs.add(new BasicNameValuePair("schoolSelected",
+						school));
+				// tv.setText("vhisjdskdj");
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+				HttpResponse response = httpclient.execute(httppost);
+				HttpEntity entity = response.getEntity();
+				isr = entity.getContent();
+
+			} // try terminated
+
+			catch (Exception e) {
+				// dialog.dismiss();
+				System.out.println("Exception : " + e.getMessage());
+				InternetAlert();
+			}try {
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(isr, "iso-8859-1"), 8);
+				StringBuilder sb = new StringBuilder();
+				String line = null;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line + "\n");
+
+				}
+				isr.close();
+
+				result = sb.toString();
+
+			} catch (Exception e) {
+				Log.e("log_tag", "Error coverting result " + e.toString());
+
+			}
+			
+			try {
+				// String s = "";
+				// ArrayList<String> listItems=new ArrayList<String>();
+				
+
+				JSONArray jArray = new JSONArray(result);
+
+				for (int i = 0; i < jArray.length(); i++) {
+					JSONObject json = jArray.getJSONObject(i);
+					// assign[i]=json.getString("ASSIGNMENT_TEXT");
+					HashMap<String, String> temp = new HashMap<String, String>();
+
+					temp.put("subject", "" + json.getString("SUBJECT") + "");
+					temp.put("assign", "" + json.getString("ASSIGNMENT_TEXT")
+							+ "");
+					temp.put("date", "" + json.getString("Date") + "");
+					list.add(temp);
+
+					// listItems.add(""+json.getString("ASSIGNMENT_TEXT")+"");
+				}
+				
+
+			} catch (Exception e) {
+				Log.e("log_tag", "Error Parsing data " + e.toString());
+
+			}
+			
+
+		} // void
+
+	}
+	public void InternetAlert() {
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getActivity());
+				builder.setTitle("Connection Error");
+				builder.setMessage("Check Internet Connection")
+						.setCancelable(false)
+						.setPositiveButton("OK",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+			}
+		}); // on click terminated
+	}//
+
+
+}

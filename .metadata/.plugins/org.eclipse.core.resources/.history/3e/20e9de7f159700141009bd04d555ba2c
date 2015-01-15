@@ -1,0 +1,91 @@
+package com.litchi.iguardian;
+
+import android.content.Intent;
+
+public class GoogleAuthUtil {
+	
+	
+	public static final int CHANGE_TYPE_ACCOUNT_ADDED = 1;
+	public static final int CHANGE_TYPE_ACCOUNT_REMOVED= 2 ;
+	public static final int CHANGE_TYPE_ACCOUNT_RENAMED_FROM = 3;
+	public static final int CHANGE_TYPE_ACCOUNT_RENAMED_TO = 4;
+	public static final String GOOGLE_ACCOUNT_TYPE = "com.google";
+	public static final String KEY_REQUEST_ACTIONS = "request_visible_actions";
+	public static final String KEY_REQUEST_VISIBLE_ACTIVITIES =  "request_visible_actions";
+	public static final String KEY_SUPPRESS_PROGRESS_SCREEN = "suppressProgressScreen";
+	
+	public void onCreate {
+	       // onCreate is called on the main thread, so you must do the work in
+	       // a background thread, which AsyncTask makes easy to do.
+	       getAndUseAuthTokenInAsyncTask();
+	   }
+
+	   
+
+	   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	       if (requestCode == MY_ACTIVITYS_AUTH_REQUEST_CODE) {
+	           if (resultCode == RESULT_OK) {
+	               getAndUseAuthTokenInAsyncTask();
+	           }
+	       }
+	   }
+
+	   // Example of how to use the GoogleAuthUtil in a blocking, non-main thread context
+	   void getAndUseAuthTokenBlocking() {
+	       try {
+	          // Retrieve a token for the given account and scope. It will always return either
+	          // a non-empty String or throw an exception.
+	          final String token = GoogleAuthUtil.getToken(context, email, scope);
+	          // Do work with token.
+	          ...
+	          if (server indicates token is invalid) {
+	              // invalidate the token that we found is bad so that GoogleAuthUtil won't
+	              // return it next time (it may have cached it)
+	              GoogleAuthUtil.invalidateToken(Context, String)(context, token);
+	              // consider retrying getAndUseTokenBlocking() once more
+	              return;
+	          }
+	          return;
+	       } catch (GooglePlayServicesAvailabilityException playEx) {
+	         Dialog alert = GooglePlayServicesUtil.getErrorDialog(
+	             playEx.getConnectionStatusCode(),
+	             this,
+	             MY_ACTIVITYS_AUTH_REQUEST_CODE);
+	         ...
+	       } catch (UserRecoverableAuthException userAuthEx) {
+	          // Start the user recoverable action using the intent returned by
+	          // getIntent()
+	          myActivity.startActivityForResult(
+	                  userAuthEx.buildIntent(),
+	                  MY_ACTIVITYS_AUTH_REQUEST_CODE);
+	          return;
+	       } catch (IOException transientEx) {
+	          // network or server error, the call is expected to succeed if you try again later.
+	          // Don't attempt to call again immediately - the request is likely to
+	          // fail, you'll hit quotas or back-off.
+	          ...
+	          return;
+	       } catch (GoogleAuthException authEx) {
+	          // Failure. The call is not expected to ever succeed so it should not be
+	          // retried.
+	          ...
+	          return;
+	       }
+	   }
+
+	   // Example of how to use AsyncTask to call blocking code on a background thread.
+	   void getAndUseAuthTokenInAsyncTask() {
+	       AsyncTask task = new AsyncTask() {
+	           @Override
+	           protected Void doInBackground(Void... params) {
+	               getAndUseAuthTokenBlocking();
+	           }
+	       };
+	       task.execute((Void)null);
+	   }
+	
+	
+	
+	
+
+}
